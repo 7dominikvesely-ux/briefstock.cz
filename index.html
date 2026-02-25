@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BriefStock CZ – Investice jednoduše</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--accent:#c8a84b;--accent2:#e8c96b;--text:#e8e8f0;--muted:#8888a0;--green:#3ddc84;--red:#ff5252}
+  *{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:rgba(10,10,15,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+  .logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;text-decoration:none;color:var(--text);cursor:pointer}
+  .logo span{color:var(--accent)}
+  .nav-right{display:flex;align-items:center;gap:1rem}
+  .nav-back{color:var(--muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;transition:color .2s;display:none}
+  .nav-back:hover{color:var(--accent)}
+  .nav-btn{background:var(--accent);color:#0a0a0f;border:none;padding:0.5rem 1.2rem;font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.85rem;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;transition:background .2s;text-decoration:none}
+  .nav-btn:hover{background:var(--accent2)}
+
+  /* PAGES */
+  .page{display:none;animation:fadeUp 0.5s ease both}
+  .page.active{display:block}
+
+  /* HOME */
+  .hero{display:flex;align-items:flex-end;padding:5rem 2rem 0;position:relative;overflow:hidden}
+  .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(200,168,75,0.07) 0%,transparent 70%)}
+  .hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,168,75,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,168,75,0.04) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse at center,black 20%,transparent 70%)}
+  .hero-content{position:relative;max-width:680px}
+  .hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(200,168,75,0.1);border:1px solid rgba(200,168,75,0.3);color:var(--accent);padding:0.35rem 0.9rem;font-size:0.75rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1.5rem}
+  .hero-badge::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+  .hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,8vw,5rem);font-weight:900;line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.2rem}
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero p{font-size:clamp(0.95rem,2.5vw,1.1rem);color:var(--muted);line-height:1.7;max-width:500px;margin-bottom:2rem;font-weight:300}
+  .hero-actions{display:flex;gap:0.75rem;flex-wrap:wrap}
+  .btn-primary{background:var(--accent);color:#0a0a0f;padding:0.8rem 1.8rem;font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;transition:all .2s;display:inline-block}
+  .btn-primary:hover{background:var(--accent2)}
+  .btn-secondary{background:transparent;color:var(--text);padding:0.8rem 1.8rem;font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.9rem;border:1px solid var(--border);cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;transition:all .2s;display:inline-block}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+
+  .ticker{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0.7rem 0;overflow:hidden;white-space:nowrap}
+  .ticker-inner{display:inline-flex;gap:2.5rem;animation:ticker 25s linear infinite}
+  .ti{display:inline-flex;align-items:center;gap:0.4rem;font-size:0.8rem;font-weight:500}
+  .tn{color:var(--muted)}.up{color:var(--green)}.down{color:var(--red)}
+
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);border-bottom:1px solid var(--border)}
+  @media(min-width:640px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat{padding:2rem;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .stat:nth-child(2n){border-right:none}
+  @media(min-width:640px){.stat:nth-child(2n){border-right:1px solid var(--border)}.stat:last-child{border-right:none}.stat{border-bottom:none}}
+  .stat-num{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:var(--accent);line-height:1;margin-bottom:0.4rem}
+  .stat-lbl{font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+
+  .articles-section{padding:3rem 2rem}
+  .sec-label{font-size:0.72rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:0.75rem;font-weight:500}
+  .sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,5vw,2.5rem);font-weight:700;line-height:1.1;letter-spacing:-0.02em;margin-bottom:2rem}
+  .articles-grid{display:grid;grid-template-columns:1fr;gap:1.5px;background:var(--border)}
+
+
+  .ac{background:var(--surface);padding:1.5rem;cursor:pointer;position:relative;overflow:hidden;transition:background .2s}
+  .ac::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--accent);transition:width .3s}
+  .ac:hover{background:var(--surface2)}.ac:hover::after{width:100%}
+  .ac-featured{padding:2rem}
+  .ac-featured .ac-title{font-size:clamp(1.1rem,3vw,1.6rem)}
+  .ac-tag{display:inline-block;background:rgba(200,168,75,0.1);color:var(--accent);font-size:0.68rem;font-weight:500;padding:0.2rem 0.55rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem}
+  .ac-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;line-height:1.3;margin-bottom:0.6rem}
+  .ac-exc{font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:1.2rem;font-weight:300}
+  .ac-meta{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);border-top:1px solid var(--border);padding-top:0.75rem}
+  .divider{width:32px;height:2px;background:var(--accent);margin:1rem 0}
+
+  .ad{background:var(--surface2);border:1px solid var(--border);padding:1.2rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:2rem 0;flex-wrap:wrap}
+  .al{font-size:0.62rem;color:var(--muted);text-transform:uppercase;margin-bottom:0.2rem}
+  .at{font-size:0.92rem;font-weight:500}
+  .ac-btn{border:1px solid var(--accent);color:var(--accent);padding:0.4rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;transition:all .2s;background:transparent}
+  .ac-btn:hover{background:var(--accent);color:#0a0a0f}
+
+  .newsletter-sec{background:var(--surface2);border-top:1px solid var(--border);padding:3rem 2rem;text-align:center}
+  .newsletter-inner{max-width:500px;margin:0 auto}
+  .nl-form{display:flex;margin-top:2rem}
+  .nl-form input{flex:1;background:var(--bg);border:1px solid var(--border);border-right:none;color:var(--text);padding:0.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;min-width:0}
+  .nl-form input:focus{border-color:var(--accent)}
+  .nl-form input::placeholder{color:var(--muted)}
+  .nl-form button{background:var(--accent);color:#0a0a0f;border:none;padding:0.8rem 1.2rem;font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.85rem;cursor:pointer;text-transform:uppercase;white-space:nowrap}
+
+  /* ARTICLE PAGE */
+  .art-hero{padding:7rem 2rem 2rem;max-width:820px;margin:0 auto}
+  .art-tags{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem}
+  .art-tag{background:rgba(200,168,75,0.1);color:var(--accent);font-size:0.68rem;font-weight:500;padding:0.2rem 0.6rem;text-transform:uppercase;letter-spacing:0.1em}
+  .art-tag.green{background:rgba(61,220,132,0.1);color:var(--green)}
+  .art-h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,6vw,3rem);font-weight:900;line-height:1.1;letter-spacing:-0.03em;margin-bottom:1rem}
+  .art-sub{font-size:clamp(0.9rem,2.5vw,1.05rem);color:var(--muted);line-height:1.7;font-weight:300;margin-bottom:1.5rem}
+  .art-meta{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;padding:1rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-size:0.8rem;color:var(--muted)}
+  .art-meta strong{color:var(--text)}
+  .stock-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.5rem;margin:2rem 0;display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+  @media(min-width:480px){.stock-box{grid-template-columns:repeat(4,1fr)}}
+  .sl{font-size:0.68rem;color:var(--muted);text-transform:uppercase;margin-bottom:0.3rem}
+  .sv{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700}.sv.up{color:var(--green)}.sv.g{color:var(--accent)}
+  .art-body{max-width:820px;margin:0 auto;padding:0 2rem 5rem}
+  .art-body h2{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,4vw,1.7rem);font-weight:700;margin:2.5rem 0 0.8rem}
+  .art-body h3{font-size:0.9rem;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin:1.8rem 0 0.6rem}
+  .art-body p{font-size:0.97rem;line-height:1.85;color:#c8c8d8;font-weight:300;margin-bottom:1rem}
+  .art-body strong{color:var(--text);font-weight:500}
+  .hl{background:var(--surface2);border-left:3px solid var(--accent);padding:1.2rem 1.5rem;margin:1.8rem 0;font-size:1rem;line-height:1.7;color:var(--text);font-style:italic;font-family:'Playfair Display',serif}
+  .procon{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:1.8rem 0}
+  .pro,.con{background:var(--surface);padding:1.2rem}
+  .pro-t{font-size:0.72rem;text-transform:uppercase;color:var(--green);margin-bottom:0.8rem}
+  .con-t{font-size:0.72rem;text-transform:uppercase;color:var(--red);margin-bottom:0.8rem}
+  .procon ul{list-style:none;display:flex;flex-direction:column;gap:0.5rem}
+  .pro ul li::before{content:'↑ ';color:var(--green)}.con ul li::before{content:'↓ ';color:var(--red)}
+  .procon li{font-size:0.85rem;line-height:1.5;color:#c8c8d8}
+  .verdict{background:linear-gradient(135deg,rgba(200,168,75,0.08),rgba(200,168,75,0.03));border:1px solid rgba(200,168,75,0.3);padding:1.8rem;margin:2rem 0}
+  .vl{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.6rem}
+  .vt{font-family:'Playfair Display',serif;font-size:1.1rem;line-height:1.5;color:var(--text)}
+  .vr{margin-top:0.8rem;font-size:0.82rem;color:var(--muted)}.stars{color:var(--accent)}
+  .disc{font-size:0.75rem;color:var(--muted);border-top:1px solid var(--border);padding-top:1.2rem;margin-top:2.5rem;line-height:1.7}
+  .more-articles{background:var(--surface);border-top:1px solid var(--border);padding:2.5rem 2rem}
+  .more-t{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:1.3rem}
+  .more-grid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--border)}
+  @media(min-width:560px){.more-grid{grid-template-columns:repeat(3,1fr)}}
+  .mc{background:var(--surface);padding:1.1rem;cursor:pointer;transition:background .2s}
+  .mc:hover{background:var(--surface2)}
+  .mc-tag{font-size:0.66rem;color:var(--accent);text-transform:uppercase;margin-bottom:0.35rem}
+  .mc-title{font-family:'Playfair Display',serif;font-size:0.92rem;font-weight:700;line-height:1.3;margin-bottom:0.35rem}
+  .mc-meta{font-size:0.7rem;color:var(--muted)}
+
+  footer{background:var(--surface);border-top:1px solid var(--border);padding:1.8rem 2rem;display:flex;flex-direction:column;gap:0.7rem;align-items:center;text-align:center}
+  @media(min-width:560px){footer{flex-direction:row;justify-content:space-between}}
+  .fl{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;cursor:pointer;color:var(--text)}.fl span{color:var(--accent)}
+  .fc{font-size:0.73rem;color:var(--muted)}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="showHome()">Brief<span>Stock</span> CZ</div>
+  <div class="nav-right">
+    <div class="nav-back" id="nav-back" onclick="showHome()">← Zpět</div>
+  </div>
+</nav>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <h1>Investuj chytře.<br><em>Rozhoduj se</em> s daty.</h1>
+      <p>BriefStock CZ přináší přehled akcií a trhů pro česky mluvící investory. Stručně, přehledně, zdarma.</p>
+
+    </div>
+  </section>
+
+  <!-- TradingView Ticker Widget -->
+  <div id="ticker" style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
+          {"proName":"NASDAQ:NVDA","title":"NVIDIA"},
+          {"proName":"NASDAQ:AAPL","title":"Apple"},
+          {"proName":"NASDAQ:GOOGL","title":"Alphabet"},
+          {"proName":"NASDAQ:MSFT","title":"Microsoft"},
+          {"proName":"NASDAQ:AMZN","title":"Amazon"},
+          {"proName":"NASDAQ:META","title":"Meta"},
+          {"proName":"NASDAQ:AVGO","title":"Broadcom"},
+          {"proName":"NASDAQ:TSLA","title":"Tesla"},
+          {"proName":"NYSE:BRK.B","title":"Berkshire"},
+          {"proName":"NASDAQ:WMT","title":"Walmart"}
+        ],
+        "showSymbolLogo": false,
+        "isTransparent": true,
+        "displayMode": "compact",
+        "colorTheme": "dark",
+        "locale": "en"
+      }
+      </script>
+    </div>
+  </div>
+
+
+
+  <section class="articles-section" id="clanky">
+    <div class="sec-label">Nejnovější</div>
+    <h2 class="sec-title">Analýzy & Zpravodajství</h2>
+    <div class="articles-grid" id="articles-grid"></div>
+    <div class="ad"><div><div class="al">Reklama</div><div class="at">Otevřete si investiční účet – bez poplatků za obchod</div></div><button class="ac-btn">Zjistit více →</button></div>
+  </section>
+
+  <footer>
+    <div class="fl" onclick="showHome()">Brief<span>Stock</span> CZ</div>
+    <div class="fc">© 2026 BriefStock CZ · Informace nejsou investičním poradenstvím.</div>
+  </footer>
+</div>
+
+<!-- ARTICLE PAGES -->
+<div class="page" id="page-article">
+  <div id="article-content"></div>
+  <footer>
+    <div class="fl" onclick="showHome()">Brief<span>Stock</span> CZ</div>
+    <div class="fc">© 2026 BriefStock CZ · Informace nejsou investičním poradenstvím.</div>
+  </footer>
+</div>
+
+<script>
+const articles = {
+  nvidia: {
+    tags: ['Analýza','Akcie','Technologie'],
+    title: 'NVIDIA 2025: Je AI boom skutečný, nebo přehřátý?',
+    subtitle: 'Akcie NVDA vzrostly za dva roky o stovky procent. Analytici se rozcházejí. Podíváme se na čísla bez emocí.',
+    date: '21. 2. 2026', order: 4, time: '8 min čtení', ticker: 'NVDA',
+    price: '$190.00', change: '+3.14%', pe: '35.2×', cap: '$2.16T',
+    highlight: '„NVIDIA se stala jednou z nejhodnotnějších společností světa. Ale co to znamená pro investory, kteří uvažují o vstupu dnes?"',
+    body: `
+      <h2>Proč se o NVIDIA tolik mluví</h2><div class="divider"></div>
+      <p>Pokud jste v posledních dvou letech sledovali finanční zprávy, jméno NVIDIA vám určitě neuteklo. Společnost, která začínala jako výrobce grafických karet pro hráče, se proměnila v absolutní páteř globálního boomu umělé inteligence. Jejich čipy <strong>GPU H100 a A100</strong> pohánějí drtivou většinu moderních AI modelů – od ChatGPT po interní systémy největších technologických gigantů.</p>
+      <p>Výsledek? Akcie vzrostly z přibližně <strong>$150 na více než $875</strong> za méně než dva roky – nárůst přes 480 %. Pro srovnání S&P 500 za stejnou dobu vzrostl o přibližně 45 %.</p>
+      <h2>Finanční výsledky</h2><div class="divider"></div>
+      <h3>Příjmy a ziskovost</h3>
+      <p>Ve fiskálním roce 2024 NVIDIA vykázala tržby <strong>$60.9 miliard</strong> – meziročně nárůst o 122 %. Čistý zisk dosáhl <strong>$29.8 miliard</strong>. Segment datových center tvoří přes <strong>83 % celkových příjmů</strong>.</p>
+      <h3>Marže a konkurence</h3>
+      <p>Hrubá marže NVIDIA se pohybuje kolem <strong>76 %</strong>. NVIDIA má dominantní postavení díky software ekosystému CUDA, který konkurence nedokáže snadno nahradit.</p>
+      <h2>Rizika</h2><div class="divider"></div>
+      <h3>Ocenění</h3>
+      <p>P/E ratio 35× je vysoké, ale při tempu růstu zisků (<strong>EPS meziročně +765 %</strong>) není nutně alarmující. Forward P/E kolem 28×.</p>
+      <h3>Geopolitika</h3>
+      <p>USA zavedla omezení na export čipů do Číny. Čína historicky tvořila přibližně <strong>20 % příjmů</strong> NVIDIA.</p>
+    `,
+    pros: ['Dominantní pozice v AI infrastruktuře','Rekordní tržby a ziskovost','Silný ekosystém CUDA','Rostoucí poptávka po AI výpočtech'],
+    cons: ['Vysoké ocenění po masivním růstu','Geopolitická rizika – Čína','Závislost na malém počtu zákazníků','Budoucí konkurence AMD'],
+    verdict: 'NVIDIA je kvalitní firma s výjimečnými základy, ale za prémiovou cenu. Vhodná jako část diverzifikovaného portfolia.',
+    rating: '★★★★☆ 4/5 – Sledovat a přikupovat při korekci',
+    more: ['microsoft','broadcom','amd']
+  },
+  microsoft: {
+    tags: ['Analýza','Akcie','Technologie'],
+    title: 'Microsoft 2025: Azure a AI jako motor růstu',
+    subtitle: 'Microsoft investuje desítky miliard do umělé inteligence. Cloud roste, Copilot expanduje. Je cena akcií ospravedlnitelná?',
+    date: '20. 2. 2026', order: 3, time: '6 min čtení', ticker: 'MSFT',
+    price: '$397.23', change: '+0.87%', pe: '36.4×', cap: '$3.09T',
+    highlight: '„Microsoft vsadil na AI dřív než většina. Teď sklízí plody – ale otázka je, zda jsou v ceně akcií již zahrnuté."',
+    body: `
+      <h2>Proč je Microsoft jiný</h2><div class="divider"></div>
+      <p>Microsoft úspěšně zvládl velkou transformaci – z prodejce krabicového softwaru na cloudového a AI giganta. Klíčem byl <strong>Azure</strong>, který soutěží přímo s AWS a Google Cloud.</p>
+      <p>Microsoft jako první velká firma vsadil na OpenAI s investicí přes <strong>13 miliard dolarů</strong>. Výsledkem je Copilot integrovaný do Word, Excel, Teams a dalších produktů.</p>
+      <h2>Finanční výsledky</h2><div class="divider"></div>
+      <h3>Cloud a příjmy</h3>
+      <p>Ve fiskálním roce 2024 Microsoft vykázal tržby <strong>$245 miliard</strong>, nárůst o 16 %. Azure rostl tempem přes <strong>29 % ročně</strong>.</p>
+      <h3>Ziskovost</h3>
+      <p>Čistý zisk dosáhl <strong>$88 miliard</strong> s marží přes 35 %. Dividenda roste každý rok.</p>
+      <h2>Rizika</h2><div class="divider"></div>
+      <h3>Regulace</h3>
+      <p>Microsoft je pod drobnohledem regulátorů v EU i USA. Antimonopolní tlak roste.</p>
+      <h3>AI monetizace</h3>
+      <p>Velká část prémie v ceně je postavena na očekávání masivní monetizace Copilotu. Pokud adopce zpomalí, cena může korigovat.</p>
+    `,
+    pros: ['Azure roste 29 % ročně','Diverzifikované příjmy','Silná AI pozice přes OpenAI','Stabilní dividenda a buybacky'],
+    cons: ['Vysoké P/E 36×','Regulatorní rizika','AI monetizace nevyšla naplno','Konkurence AWS a Google Cloud'],
+    verdict: 'Microsoft je prémiová firma za prémiovou cenu. Pro dlouhodobé investory jedna z nejbezpečnějších sázek v tech sektoru.',
+    rating: '★★★★☆ 4/5 – Držet, přikupovat při korekci',
+    more: ['nvidia','broadcom','palantir']
+  },
+  broadcom: {
+    tags: ['Analýza','Technologie'],
+    title: 'Broadcom 2025: Tichý gigant AI čipů',
+    subtitle: 'Broadcom není tak slavný jako NVIDIA, ale jeho role v AI infrastruktuře je naprosto klíčová. Kdo je tento tichý gigant?',
+    date: '19. 2. 2026', order: 2, time: '5 min čtení', ticker: 'AVGO',
+    price: '$335.79', change: '+1.45%', pe: '34.2×', cap: '$862B',
+    highlight: '„Broadcom je firma, o které většina lidí neslyšela – přesto pohání internet, AI datacentra i smartphony po celém světě."',
+    body: `
+      <h2>Co vlastně Broadcom dělá</h2><div class="divider"></div>
+      <p>Broadcom je diverzifikovaný technologický gigant, který vyrábí polovodičové komponenty pro sítě, storage, broadband a stále více pro AI. Jeho čipy najdete v serverech Googlu, Apple iPhone i prakticky každém síťovém zařízení ve světě.</p>
+      <p>Klíčovým produktem pro AI jsou <strong>vlastní AI akcelerátory (XPUs)</strong>, které Google a Meta používají jako alternativu k NVIDIA GPU pro specifické AI úlohy. Broadcom také dominuje trhu <strong>Ethernet síťových čipů</strong> pro AI datacentra.</p>
+      <h2>Finanční výsledky</h2><div class="divider"></div>
+      <h3>Příjmy</h3>
+      <p>Ve fiskálním roce 2024 Broadcom vykázal tržby <strong>$51.6 miliard</strong> – nárůst o 44 % díky akvizici VMware. AI segment rostl o více než <strong>220 % ročně</strong>.</p>
+      <h3>VMware integrace</h3>
+      <p>Akvizice VMware za <strong>$69 miliard</strong> v roce 2023 přinesla masivní software příjmy. Broadcom transformuje VMware na předplatný model s výrazně vyššími maržemi.</p>
+      <h2>Rizika</h2><div class="divider"></div>
+      <h3>Zákaznická koncentrace</h3>
+      <p>Broadcom je silně závislý na Applu (přibližně <strong>20 % příjmů</strong>) a hyperscalerech. Ztráta klíčového zákazníka by výrazně zasáhla výsledky.</p>
+    `,
+    pros: ['AI segment roste 220 % ročně','Dominantní síťové čipy','VMware přináší software marže','Silná dividenda +14 % ročně'],
+    cons: ['Zákaznická koncentrace (Apple)','Vysoký dluh po VMware akvizici','Méně slavný = méně retail zájem','Regulatorní rizika VMware'],
+    verdict: 'Broadcom je skrytý klenot pro investory hledající AI expozici mimo NVIDIA. Silné fundamenty, atraktivní dividenda.',
+    rating: '★★★★★ 5/5 – Koupit při jakékoliv korekci',
+    more: ['nvidia','microsoft','amd']
+  },
+  netflix: {
+    tags: ['Analýza','Média'],
+    title: 'Netflix 2025: Od DVD půjčovny k reklamnímu gigantu',
+    subtitle: 'Netflix přidal reklamy a živé sporty. Předplatitelé rostou. Je cena akcií po masivním růstu stále atraktivní?',
+    date: '18. 2. 2026', order: 1, time: '6 min čtení', ticker: 'NFLX',
+    price: '$78.67', change: '+0.92%', pe: '42.1×', cap: '$298B',
+    highlight: '„Netflix byl jednou odsouzen k zániku kvůli konkurenci. Dnes patří mezi nejziskovější mediální firmy světa."',
+    body: `
+      <h2>Jak Netflix znovu vynalezl sám sebe</h2><div class="divider"></div>
+      <p>V roce 2022 Netflix ztratil miliony předplatitelů a akcie spadly o 75 %. Analytici psali nekrology. O dva roky později je Netflix opět na vrcholu – s <strong>více než 300 miliony předplatitelů</strong> a rekordními příjmy.</p>
+      <p>Klíčem byl odvážný krok: <strong>reklamní tier</strong> za nižší cenu a tvrdý boj proti sdílení hesel. Výsledek? Masivní příliv nových předplatitelů a nový zdroj příjmů z reklam, který teprve začíná.</p>
+      <h2>Finanční výsledky</h2><div class="divider"></div>
+      <h3>Příjmy a růst</h3>
+      <p>V roce 2024 Netflix vykázal tržby <strong>$39 miliard</strong>, nárůst o 15 %. Provozní marže vzrostla na <strong>26 %</strong> – historické maximum. Free cash flow dosáhl $6.9 miliard.</p>
+      <h3>Reklamy jako budoucnost</h3>
+      <p>Reklamní tier má již přes <strong>70 milionů aktivních uživatelů</strong> měsíčně. Netflix buduje vlastní reklamní platformu, která by mohla přinést miliardové příjmy nad rámec předplatného.</p>
+      <h2>Rizika</h2><div class="divider"></div>
+      <h3>Saturace trhu</h3>
+      <p>S 300 miliony předplatitelů je obtížné pokračovat v rychlém růstu. Netflix se přesouvá k vyšším cenám a live eventem jako NFL zápasy.</p>
+    `,
+    pros: ['300M+ předplatitelů celosvětově','Reklamní příjmy teprve začínají','Živé sporty jako nový driver','Rekordní provozní marže 26 %'],
+    cons: ['Saturace na vyspělých trzích','Vysoké P/E 42×','Rostoucí náklady na obsah','Konkurence Disney+, HBO Max'],
+    verdict: 'Netflix úspěšně prošel transformací. Reklamní byznys a live sport mohou výrazně zvýšit příjmy v příštích letech.',
+    rating: '★★★★☆ 4/5 – Atraktivní pro dlouhodobé investory',
+    more: ['microsoft','palantir','amd']
+  },
+  amd: {
+    tags: ['Analýza','Technologie'],
+    title: 'AMD 2025: Může porazit NVIDIA v AI závodě?',
+    subtitle: 'AMD agresivně útočí na trh AI čipů s řadou MI300. Má šanci získat výrazný podíl a ohrozit dominanci NVIDIA?',
+    date: '17. 2. 2026', order: 0, time: '7 min čtení', ticker: 'AMD',
+    price: '$200.15', change: '+2.34%', pe: '28.7×', cap: '$272B',
+    highlight: '„AMD je underdog příběh technologického světa. Firma, která se vrátila z okraje propasti a dnes ohrožuje NVIDIA na jejím vlastním území."',
+    body: `
+      <h2>AMD comeback příběh</h2><div class="divider"></div>
+      <p>Před deseti lety byl AMD na pokraji bankrotu. Dnes je AMD druhým největším hráčem na trhu procesorů a GPU, s tržní hodnotou přes <strong>$270 miliard</strong>. Za tímto obratem stojí CEO Lisa Su – jedna z nejvíce respektovaných lídrů v tech průmyslu.</p>
+      <p>AMD úspěšně dobyla trh serverových procesorů (<strong>EPYC</strong>) a nyní agresivně útočí na AI GPU trh s řadou <strong>Instinct MI300X</strong>, která nabízí konkurenceschopný výkon proti NVIDIA H100.</p>
+      <h2>Finanční výsledky</h2><div class="divider"></div>
+      <h3>Příjmy a AI segment</h3>
+      <p>V roce 2024 AMD vykázalo tržby <strong>$25.8 miliard</strong>, nárůst o 14 %. AI GPU segment (MI300) překonal <strong>$5 miliard</strong> ročních příjmů – výrazně nad původními odhady.</p>
+      <h3>Datová centra</h3>
+      <p>Segment datových center roste nejrychleji – <strong>+122 % meziročně</strong>. Microsoft, Meta a Oracle nasazují MI300X jako doplněk nebo alternativu k NVIDIA.</p>
+      <h2>Rizika</h2><div class="divider"></div>
+      <h3>Software ekosystém</h3>
+      <p>NVIDIA CUDA má desetiletý náskok. AMD ROCm software ekosystém se zlepšuje, ale stále zaostává. Mnoho AI vývojářů odmítá přejít kvůli kompatibilitě.</p>
+    `,
+    pros: ['MI300X konkurenceschopný NVIDIA','Datová centra rostou 122 %','Nižší valuace než NVIDIA','Lisa Su = výjimečné vedení'],
+    cons: ['CUDA ekosystém NVIDIA nedostižný','Tržní podíl AI GPU stále malý','Slabší GPU gaming segment','Integrace Xilinx stále probíhá'],
+    verdict: 'AMD je solidní alternativa k NVIDIA s nižší valuací. Plný potenciál AI segmentu se teprve ukáže.',
+    rating: '★★★★☆ 4/5 – Koupit pro diverzifikaci AI expozice',
+    more: ['nvidia','microsoft','broadcom']
+  },
+  palantir: {
+    tags: ['Analýza','AI & Data'],
+    title: 'Palantir 2025: Kontroverzní AI firma s vládními kontrakty',
+    subtitle: 'Palantir milují jedni a nenávidí druzí. Vládní kontrakty, AI platforma a extrémní valuace. Co říkají čísla?',
+    date: '16. 2. 2026', order: -1, time: '7 min čtení', ticker: 'PLTR',
+    price: '$135.24', change: '+4.12%', pe: '198×', cap: '$168B',
+    highlight: '„Palantir je pravděpodobně nejvíce polarizující akcie na Wall Street. Buď ji milujete, nebo nenávidíte – ale ignorovat ji nelze."',
+    body: `
+      <h2>Co Palantir vlastně dělá</h2><div class="divider"></div>
+      <p>Palantir vyvíjí analytické softwarové platformy pro vládní agentury a korporace. Jejich produkty <strong>Gotham</strong> (vládní) a <strong>Foundry</strong> (komerční) umožňují organizacím zpracovávat obrovská množství dat a dělat rozhodnutí v reálném čase.</p>
+      <p>Nejnovějším produktem je <strong>AIP (Artificial Intelligence Platform)</strong> – AI vrstva nad existujícími systémy, která zažívá explozivní adopci. Palantir pořádá tzv. "boot campy" kde zákazníci vidí AIP v akci a okamžitě podepisují smlouvy.</p>
+      <h2>Finanční výsledky</h2><div class="divider"></div>
+      <h3>Příjmy a ziskovost</h3>
+      <p>V roce 2024 Palantir vykázal tržby <strong>$2.87 miliard</strong>, nárůst o 29 %. Poprvé v historii dosáhl <strong>plné GAAP ziskovosti</strong> po celý rok. US komerční segment rostl o 70 %.</p>
+      <h3>AIP jako game changer</h3>
+      <p>AIP přináší Palantiru přístup k enterprise trhům mimo vládní sektor. Zákazníci jako <strong>BP, Airbus a Ferrari</strong> nasazují AIP pro operativní rozhodování.</p>
+      <h2>Rizika</h2><div class="divider"></div>
+      <h3>Extrémní valuace</h3>
+      <p>P/E ratio 198× je jedním z nejvyšších v celém S&P 500. I při optimistických předpokladech musí Palantir růst desetiletí aby tuto valuaci ospravedlnil.</p>
+    `,
+    pros: ['AIP explozivní adopce','První plná GAAP ziskovost','US komerční segment +70 %','Unikátní vládní kontrakty'],
+    cons: ['P/E 198× extrémně vysoké','Malá firma vs. obří valuace','Závislost na vládních kontraktech','Zakladatelé kontrolují hlasování'],
+    verdict: 'Palantir je výjimečná firma s reálným produktem. Ale při valuaci 198× P/E je potřeba hodně víry v budoucí růst.',
+    rating: '★★★☆☆ 3/5 – Spekulativní pozice pro odvážné',
+    more: ['nvidia','microsoft','netflix']
+  },
+  elililly: {
+    tags: ['Analýza','Farmacie','Srovnání'],
+    title: 'Eli Lilly vs Novo Nordisk: Kdo vyhraje válku GLP-1?',
+    subtitle: 'Novo Nordisk včera spadl o 16 % po neúspěchu klinické studie. Eli Lilly posílil o 5 %. GLP-1 trh za 100 miliard dolarů má jasného favorita.',
+    date: '24. 2. 2026', order: 5, time: '8 min čtení', ticker: 'LLY vs NVO',
+    price: '$1009.52', change: '+4.9%', pe: '25.9×', cap: '$952B',
+    highlight: '„Včera Novo Nordisk padl o 16 % na nejnižší hodnotu od roku 2021. Eli Lilly ve stejný den posílil o 5 %. GLP-1 válka má jasného vítěze."',
+    body: `
+      <h2>Co se stalo 23. února 2026</h2><div class="divider"></div>
+      <p>Novo Nordisk zveřejnil výsledky head-to-head klinické studie svého experimentálního léku <strong>CagriSema</strong> proti Eli Lilly tirzepatidu. Výsledek? CagriSema nedosáhl klíčového cíle – neprokázal non-inferioritu vůči Lilly léku.</p>
+      <p>Pacienti užívající CagriSema zhubli průměrně <strong>23 % tělesné hmotnosti</strong> po 84 týdnech. Tirzepatid (Lilly) dosáhl <strong>25,5 %</strong>. Rozdíl vypadá malý, ale ve farmacii je to propastný rozdíl – a investoři to věděli. Akcie NVO spadly o <strong>16 %</strong>, LLY posílila o <strong>5 %</strong>.</p>
+      <h2>Dvě firmy, jeden trh</h2><div class="divider"></div>
+      <h3>Novo Nordisk – Ozempic a Wegovy</h3>
+      <p>Dánský farmaceutický gigant byl první na trhu s GLP-1 léky. <strong>Ozempic</strong> (diabetes) a <strong>Wegovy</strong> (obezita) se staly globálním fenoménem. Novo také jako první získal FDA schválení pro <strong>orální pilulku Wegovy</strong> v prosinci 2025 za cenu $149 měsíčně.</p>
+      <p>Problém? Výhled na rok 2026 je alarmující. Novo varoval, že tržby a zisk klesnou o <strong>5–13 %</strong> – první pokles od roku 2017. Důvody: nižší ceny v USA, vypršení patentů v Číně, Brazílii a Kanadě, a rostoucí konkurence od Lilly.</p>
+      <h3>Eli Lilly – Mounjaro a Zepbound</h3>
+      <p>Eli Lilly přišel na trh později, ale rychle dohnal a předehnal Novo. <strong>Mounjaro</strong> (diabetes) a <strong>Zepbound</strong> (obezita) jsou dual GLP-1/GIP receptor agonisté – působí na dva hormonální systémy místo jednoho. Výsledek: <strong>větší úbytek hmotnosti</strong> než u Novo léků.</p>
+      <p>Lilly drží přes <strong>60 % tržního podílu</strong> v USA v GLP-1 segmentu. Novo má přibližně 39 %. A trend je jasný – Lilly podíl roste, Novo klesá.</p>
+      <h2>Finanční srovnání 2026</h2><div class="divider"></div>
+      <h3>Eli Lilly</h3>
+      <p>Lilly vykázal za Q4 2025 rekordní tržby – Mounjaro a Zepbound dohromady přinesly přes <strong>$10 miliard</strong> za jediný kvartál. Výhled na rok 2026: tržby <strong>$80–83 miliard</strong>, růst 25 %. Patent na tirzepatid platí do konce <strong>30. let</strong> ve většině klíčových trhů.</p>
+      <h3>Novo Nordisk</h3>
+      <p>Novo za celý rok 2025 vykázal tržby <strong>309 miliard dánských korun</strong> – pod očekáváním analytiků (347 mld. DKK). Výhled 2026: první pokles tržeb od roku 2017. CEO Doustdar řekl: <strong>„Čekejte pokles, než to půjde nahoru."</strong></p>
+      <h2>Pilulky – nová fronta</h2><div class="divider"></div>
+      <p>Novo je první s <strong>orální pilulkou Wegovy</strong> schválenou FDA. Za první 3 týdny dosáhl 50 000 týdenních receptů. Cena $149 měsíčně je dostupnější než injekce.</p>
+      <p>Lilly odpovídá vlastní pilulkou <strong>orforglipron</strong>, která je ve FDA schvalovacím procesu a očekává schválení ve <strong>Q2 2026</strong>. Výhoda: orforglipron je small-molecule lék – nevyžaduje dietetická omezení jako Novo pilulka (30 min čekání bez jídla po užití).</p>
+      <h2>Trumpův vliv na ceny</h2><div class="divider"></div>
+      <p>Obě firmy podepsaly v listopadu 2025 dohody s Trumpovou administrativou o snížení cen GLP-1 léků. To tlačí marže dolů – ale zároveň rozšiřuje dostupnost pro miliony Američanů. Medicare pokrytí GLP-1 léků se očekává od července 2026.</p>
+    `,
+    pros: ['LLY: 60 % tržní podíl v USA a roste','LLY: Patent do konce 30. let','LLY: Výhled +25 % tržeb v 2026','NVO: První orální GLP-1 pilulka na trhu'],
+    cons: ['NVO: Tržby 2026 klesnou o 5–13 %','NVO: CagriSema selhal v klinické studii','NVO: Vypršení patentů v klíčových trzích','LLY: Cena akcií velmi vysoká ($1009)'],
+    verdict: 'Eli Lilly je jasný vítěz GLP-1 války v roce 2026. Novo Nordisk bojuje s více problémy najednou a potřebuje čas na obnovu. Pro investory je LLY přesvědčivější volba, NVO může být spekulativní sázka na otočení trendu.',
+    rating: '★★★★★ LLY 5/5 – Koupit | ★★★☆☆ NVO 3/5 – Vyčkat',
+    more: ['nvidia','microsoft','palantir']
+  },
+  nvidiaearnings: {
+    tags: ['Výsledky','Akcie','AI'],
+    title: 'NVIDIA výsledky Q4 2026: Překoná firma očekávání analytiků? Co čekat dnes večer',
+    subtitle: 'NVIDIA dnes 25. února 2026 po uzavření burzy zveřejní výsledky za Q4 FY2026. Analytici čekají tržby $65 miliard. Co to znamená pro akcie NVDA?',
+    date: '25. 2. 2026', order: 11, time: '6 min čtení', ticker: 'NVDA',
+    highlight: '„12 kvartálů po sobě NVIDIA překonal očekávání analytiků. Dnes večer přijde třináctý test. Blackwell čipy, guidance na příští kvartál (únor–duben 2026) a komentář Jensena Huanga – to jsou tři věci které rozhodnou o pohybu akcie."',
+    body: `
+      <h2>Co se dnes večer stane</h2><div class="divider"></div>
+      <p>NVIDIA zveřejní výsledky za čtvrtý kvartál fiskálního roku 2026 (období do 25. ledna 2026) dnes <strong>25. února 2026 po uzavření americké burzy</strong> – přibližně ve 22:20 českého času. Následuje conference call s CEO Jensenem Huangem v 23:00 CET.</p>
+      <p>Toto jsou výsledky které celý tech sektor sleduje jako barometr AI boomu. NVIDIA v posledních 12 kvartálech vždy překonal očekávání analytiků.</p>
+      <h2>Co analytici čekají – konsenzus</h2><div class="divider"></div>
+      <h3>Tržby</h3>
+      <p>Wall Street konsenzus: tržby <strong>$65 miliard</strong> za Q4. To by byl nárůst o přibližně 14 % oproti Q3 (kdy NVIDIA vykázal $57 miliard). V Q3 firma překonala odhady o více než $2 miliardy.</p>
+      <h3>EPS a marže</h3>
+      <p>Očekávaný upravený EPS: přibližně <strong>$1.58</strong>. Hrubá marže by měla dosáhnout přibližně <strong>73,5–75 %</strong> – analytici sledují zda Blackwell čipy udrží prémiové ceny.</p>
+      <h3>Guidance na Q1 FY2027</h3>
+      <p>Klíčové číslo: Wall Street čeká guidance přes <strong>$70 miliard</strong> na příští kvartál (únor–duben 2026). Pokud NVIDIA ukáže $75 miliard+, akcie pravděpodobně silně porostou.</p>
+      <h2>Proč jsou tyto výsledky důležité</h2><div class="divider"></div>
+      <h3>Blackwell ramp</h3>
+      <p>Blackwell je nejnovější generace AI čipů NVIDIA. V Q3 přinesly Blackwell čipy miliardové tržby – dnes se dozvíme zda se ramp zrychlil. Hyperscaleři (Microsoft, Meta, Amazon, Google) plánují v 2026 capex přes <strong>$600 miliard</strong> – velká část jde do NVIDIA GPU.</p>
+      <h3>Čína – nulové tržby</h3>
+      <p>USA zakázala prodej pokročilých čipů do Číny. NVIDIA v Q3 počítala s nulovými tržbami z Číny. Jakákoliv pozitivní změna v této oblasti by byla silný katalyzátor pro akcie.</p>
+      <h3>Rubin architektura</h3>
+      <p>Investoři chtějí slyšet více o <strong>Vera Rubin</strong> – příští generaci čipů plánované na druhou polovinu 2026. Silná Rubin roadmap ukáže že NVIDIA nestojí jen na Blackwell.</p>
+      <h2>Jak akcie reagovala letos</h2><div class="divider"></div>
+      <p>Akcie NVDA dosáhla vrcholu $212 v říjnu 2025, od té doby se pohybuje kolem $188. Rok 2026 je zatím skoro flat (+méně než 1 %). Trh čeká na katalyzátor – dnešní výsledky jím mohou být.</p>
+      <p>Analytici jsou převážně bullish: 37 doporučení "Koupit", 1 "Držet", 1 "Prodat". Průměrná cílová cena analytiků přes <strong>$220-250</strong>.</p>
+      <h2>Kdy sledovat výsledky</h2><div class="divider"></div>
+      <p>Výsledky vyjdou přibližně v <strong>22:20 CET</strong> na investor.nvidia.com. Conference call s Jensenem Huangem začíná ve <strong>23:00 CET</strong>. Tento článek aktualizujeme ihned po zveřejnění.</p>
+    `,
+    pros: ['12 kvartálů po sobě překonal očekávání','Hyperscaler capex 2026 přes $600 mld – přímý benefit','Blackwell v plné produkci','Analytici 37× Koupit'],
+    cons: ['Čína = nulové tržby kvůli exportním omezením','Akcie flat YTD 2026 – trh čeká na katalyzátor','Ocenění stále vysoké po 143% rally z dubna 2025','Konkurence Broadcom custom ASIC čipů roste'],
+    verdict: 'NVIDIA je stále dominantní hráč v AI infrastruktuře. Dnešní výsledky jsou test zda Blackwell ramp pokračuje. Silná guidance na příští kvartál ($75 mld+) by mohla být katalyzátorem pro pohyb akcie nahoru.',
+    rating: '★★★★☆ 4/5 – Sledovat výsledky dnes večer',
+    more: ['asml','broadcom','amd']
+  },
+  gold5000: {
+    tags: ['Zlato','Komodity','Makro'],
+    title: 'Zlato překonalo $5 000 za unci – proč roste a kam dál? Kompletní analýza 2026',
+    subtitle: 'Zlato v roce 2026 dosáhlo historického milníku přes $5 000 za unci. Za rally stojí Trump, geopolitika, centrální banky a slabý dolar. Goldman Sachs cílí na $5 400.',
+    date: '25. 2. 2026', order: 13, time: '7 min čtení', ticker: 'XAUUSD',
+    highlight: '„Zlato v 2025 vzrostlo o 64 % – největší roční nárůst od roku 1979. V prvních 26 dnech roku 2026 přidalo dalších 15 %. Goldman Sachs cílí na $5 400, Bank of America dokonce na $6 000."',
+    body: `
+      <h2>Historický milník: $5 000 za unci</h2><div class="divider"></div>
+      <p>Zlato překonalo hranici <strong>$5 000 za trojskou unci</strong> v lednu 2026 – poprvé v historii. V roce 2025 vzrostlo o 64 %, což byl největší roční nárůst od roku 1979. Momentum pokračuje i v 2026, kdy zlato přidalo dalších 15 % jen za první měsíc.</p>
+      <p>Aktuálně se cena pohybuje kolem <strong>$5 100–5 200 USD</strong> za unci a analytici velkých bank čekají další růst.</p>
+      <h2>Proč zlato tak silně roste?</h2><div class="divider"></div>
+      <h3>1. Trump a geopolitická nejistota</h3>
+      <p>Hlavní katalyzátor rally je politika Donalda Trumpa. Hrozby cly vůči Kanadě, Evropě a Číně, vojenská operace ve Venezuele a vyšetřování šéfa Fedu žene investory k bezpečným přístavům. Zlato je klasický safe-haven aktivum.</p>
+      <h3>2. Centrální banky masivně nakupují</h3>
+      <p>Centrální banky po celém světě diverzifikují rezervy pryč od dolaru. Čína nakupovala zlato 13 měsíců v řadě. J.P. Morgan očekává dalších 755 tun nákupů centrálních bank v 2026.</p>
+      <h3>3. Slabý dolar a ETF přítoky</h3>
+      <p>Dolar oslabil téměř 10 % v 2025. Globální zlaté ETF zaznamenaly v 2025 rekordní přítoky <strong>$89 miliard</strong> – největší v historii. Fyzické zásoby ETF dosáhly rekordních 4 025 tun.</p>
+      <h3>4. Inflační a fiskální obavy</h3>
+      <p>Trumpova fiskální politika, tarify a vysoký státní dluh USA vyvolávají obavy o dlouhodobou kupní sílu dolaru. Zlato funguje jako pojistka – a investoři ji masivně kupují.</p>
+      <h2>Co říkají velké banky</h2><div class="divider"></div>
+      <p>Goldman Sachs zvýšil cílovou cenu pro konec 2026 na <strong>$5 400</strong>. J.P. Morgan cílí na průměr <strong>$5 055</strong> v Q4 2026. Bank of America má bull-case scénář až <strong>$6 000</strong>. Société Générale dokonce odhaduje $6 000 jako konzervativní odhad.</p>
+      <h2>Rizika rally</h2><div class="divider"></div>
+      <p>Zlato negeneruje dividendy ani výnosy. Při růstu úrokových sazeb nebo ústupu geopolitického napětí může výrazně korigovat. Pokud Trump zmírní politiku cel nebo se dohodne s Čínou, zlatá rally by ztratila palivo.</p>
+      <h2>Jak investovat do zlata?</h2><div class="divider"></div>
+      <p>Čeští investoři mají několik možností: fyzické zlaté mince a slitky, zlaté ETF (SPDR Gold Shares – ticker GLD na burze), akcie zlatých těžařů (Barrick Gold, Newmont), nebo CFD kontrakty přes brokery jako XTB nebo Degiro.</p>
+    `,
+    pros: ['Safe-haven v době geopolitické nejistoty','Centrální banky strukturálně nakupují','Rekordní ETF přítoky $89 mld v 2025','Slabý dolar jako tailwind'],
+    cons: ['Negeneruje dividendy ani výnosy','Citlivé na úrokové sazby a geopolitiku','Již +15 % jen za leden 2026 – možná korekce','Goldman Sachs varuje rally nebude lineární'],
+    verdict: 'Zlato v 2026 není jen spekulativní aktivum – je to strukturální hedge proti geopolitické nejistotě a fiskálním rizikům. Krátkodobá korekce po silném běhu je možná, ale dlouhodobý trend podporují centrální banky a institucionální poptávka.',
+    rating: '★★★★☆ 4/5 – Diverzifikační aktivum do portfolia',
+    more: ['jpmorganwarning','nvidiaearnings','amd']
+  },
+  jpmorganwarning: {
+    tags: ['Makro','Banky','Riziko'],
+    title: 'Jamie Dimon varuje: Trhy vypadají jako před krizí 2008. Co to znamená pro vaše investice?',
+    subtitle: 'Šéf největší banky světa JPMorgan Chase Jamie Dimon 24. února 2026 varoval že situace na trzích připomíná roky 2005–2007. Vysoké ceny aktiv, přílišná páka a AI euforie – recept na krizi?',
+    date: '25. 2. 2026', order: 12, time: '6 min čtení', ticker: 'JPM',
+    highlight: '„Viděli jsme to v 2005, 2006 a 2007 – stoupající příliv zvedal všechny lodě, každý vydělával, lidé se zadlužovali na maximum. Dnes to vypadá stejně. Moje úzkost je vysoká." – Jamie Dimon, CEO JPMorgan Chase, 24. 2. 2026',
+    body: `
+      <h2>Co Dimon řekl</h2><div class="divider"></div>
+      <p>Jamie Dimon, generální ředitel JPMorgan Chase – největší banky světa – pronesl 24. února 2026 na výroční akci pro investory v New Yorku alarmující varování. Aktuální situace na finančních trzích podle něj nápadně připomíná roky 2005–2007 těsně před globální finanční krizí 2008.</p>
+      <p>Dimon popsal situaci jasně: vysoké ceny aktiv, přílišné zadlužování, všeobecná spokojenost a pocit že „tentokrát to bude jinak". Přesně to samé platilo těsně před pádem Lehman Brothers.</p>
+      <h2>Konkrétní varování</h2><div class="divider"></div>
+      <h3>Vysoké ceny aktiv = vyšší riziko</h3>
+      <p>Dimon zdůraznil paradox: investoři jsou uklidněni tím, že ceny akcií jsou na maximech. On to vnímá opačně. Čím výše ceny, tím větší potenciální pád. „Moje úzkost je vysoká. Skutečnost že ceny aktiv jsou vysoké mě neuklidňuje – naopak to přidává k riziku," řekl investorům.</p>
+      <h3>Banky dělají „hloupé věci"</h3>
+      <p>Dimon zmínil že vidí finanční instituce přijímat nadměrně riziková úvěrová rozhodnutí ve snaze o výnosy. V říjnu 2025 přirovnal špatné úvěry k šváborům – JPMorgan pak musel odepsat $170 milionů na půjčce problémové firmě.</p>
+      <h3>AI může být „překvapením" tohoto cyklu</h3>
+      <p>V každém úvěrovém cyklu přijde nečekané překvapení ze sektoru, který vypadal stabilně. V minulosti to byly noviny, utility nebo telekomunikace. Tentokrát by to mohl být <strong>software kvůli AI disrukci</strong> – přesně téma které rezonuje trhy v únoru 2026.</p>
+      <h2>Proč je Dimonovo varování důležité</h2><div class="divider"></div>
+      <p>JPMorgan vidí transakce a úvěrové toky napříč celou globální ekonomikou. Dimon má unikátní pohled na systémová rizika. A přestože varuje dlouhodobě, tentokrát je jeho tón naléhavější. Přišlo to ve stejný týden kdy soukromý úvěrový fond Blue Owl musel prodávat aktiva pod tlakem investorů – první vráska na private credit trhu.</p>
+      <h2>Co to znamená pro investory</h2><div class="divider"></div>
+      <p>Dimonovo varování neznamená nutně že krize je blízko – sám říká že neví kdy přijde. Ale signalizuje že cyklus se jednou otočí. Pro investory to znamená zvažovat diverzifikaci, udržovat hotovostní rezervy a být opatrný s pákovými investicemi. Zlato na $5 000+ naznačuje že trh Dimonovi částečně věří.</p>
+      <h2>NVIDIA dnes večer – test AI euforie</h2><div class="divider"></div>
+      <p>Právě dnes večer (25. 2. 2026) NVIDIA zveřejňuje výsledky za Q4 FY2026. Analytici čekají tržby $65 miliard. Pokud NVIDIA zklamá nebo vydá slabší guidance, může to spustit širší výprodej technologií a částečně potvrdit Dimonovy obavy o AI euphorii. Sledujeme živě – výsledky vychází přibližně ve 22:20 CET.</p>
+    `,
+    pros: ['Varování od nejlépe informované osoby ve financích','Trhy jsou skutečně na historických maximech valuací','Private credit trh vykazuje první známky stresu'],
+    cons: ['Dimon varuje roky – zatím bez krize','Ekonomické fundamenty jsou stále silné','Deregulace může prodloužit bull market'],
+    verdict: 'Dimonovo varování je důvod k obezřetnosti, ne k panice. Cyklické vrcholy jsou těžko načasovatelné. Rozumná reakce: diverzifikace, hotovostní rezerva a vyhnutí se nadměrné páce v portfoliu.',
+    rating: '★★★☆☆ 3/5 – Sledovat, ne ignorovat',
+    more: ['gold5000','nvidiaearnings','palantir']
+  },
+  asml: {
+    tags: ['Analýza','Akcie','Technologie'],
+    title: 'ASML: Monopol na čipy budoucnosti',
+    subtitle: 'Jediná firma na světě která vyrábí EUV litografické stroje. Bez ASML by neexistovaly čipy pro AI, iPhone ani datová centra.',
+    date: '24. 2. 2026', order: 9, time: '7 min čtení', ticker: 'ASML',
+    highlight: '„ASML má monopol který neexistuje nikde jinde v technologiích. Každý pokročilý čip na světě – od NVIDIA H100 po Apple M4 – vznikl na jejich strojích."',
+    body: `
+      <h2>Co ASML vlastně dělá</h2><div class="divider"></div>
+      <p>ASML vyrábí litografické stroje – zařízení která opticky vypalují obvody do křemíkových plátků (waferů). Jejich nejpokročilejší produkt jsou <strong>EUV (Extreme Ultraviolet) stroje</strong> – jediné na světě schopné vyrábět čipy menší než 7 nanometrů.</p>
+      <p>Jeden EUV stroj je veliký jako autobus, váží 180 tun a stojí přes <strong>400 milionů dolarů</strong>. ASML dodává tyto stroje výhradně třem zákazníkům: TSMC, Samsung a Intel. Bez ASML by žádný z nich nedokázal vyrábět pokročilé čipy.</p>
+      <h2>Finanční výsledky 2025</h2><div class="divider"></div>
+      <h3>Rekordní rok</h3>
+      <p>Za rok 2025 ASML vykázal tržby <strong>€32,7 miliard</strong> – nárůst o 16 %. Čistý zisk dosáhl <strong>€9,6 miliard</strong>, nárůst o 27 %. EPS vzrostl o 28 %. Hrubá marže se drží na solidních <strong>52,8 %</strong>.</p>
+      <h3>Rekordní zakázky</h3>
+      <p>V Q4 2025 ASML přijal nové zakázky za <strong>€13,2 miliard</strong> – 144 % nárůst oproti předchozímu kvartálu a 89 % nad odhadem analytiků. EUV zakázky samotné dosáhly €7,4 miliardy. Celkový backlog (nevyřízené objednávky) stoupl na <strong>€38,8 miliard</strong>.</p>
+      <h2>Výhled 2026</h2><div class="divider"></div>
+      <p>ASML odhaduje tržby 2026 v rozsahu <strong>€34–39 miliard</strong> s hrubou marží 51–53 %. To představuje růst přibližně 12 % oproti 2025. Pro rok 2030 vedení odhaduje tržby <strong>€44–60 miliard</strong>.</p>
+      <p>Analytici reagují pozitivně: UBS a Morgan Stanley zvýšili cílovou cenu na <strong>€1 400</strong>, Bernstein dokonce na <strong>$1 911</strong>. RBC Capital drží rating Outperform s cílem $1 625.</p>
+      <h2>Rizika</h2><div class="divider"></div>
+      <h3>Čína a exportní omezení</h3>
+      <p>USA zavedla exportní omezení na prodej EUV strojů do Číny. V Q4 2025 Čína tvořila 36 % tržeb ASML, ale management očekává pokles na přibližně <strong>20 % v 2026</strong>. Toto je největší riziko pro firmu.</p>
+      <h3>High-NA EUV – nová generace</h3>
+      <p>ASML právě zavádí ještě pokročilejší <strong>High-NA EUV stroje</strong> schopné vyrábět čipy pod 2 nm. Každý High-NA stroj stojí přes €350 milionů. TSMC a Intel jsou první zákazníci.</p>
+    `,
+    pros: ['Absolutní monopol na EUV technologii','Backlog €38,8 mld – viditelnost tržeb na roky','AI boom přímo pohání poptávku','Buyback program €12 mld do 2028'],
+    cons: ['Exportní omezení – Čína 36 % tržeb','Vysoké ocenění – P/E ~42×','Závislost na 3 zákaznících (TSMC, Samsung, Intel)','Geopolitické riziko Taiwan'],
+    verdict: 'ASML je jedna z nejkvalitnějších firem na světě s nenahraditelnou pozicí v globálním dodavatelském řetězci čipů. Drahá, ale oprávněně.',
+    rating: '★★★★★ 5/5 – Dlouhodobý holding pro každé portfolio',
+    more: ['nvidia','broadcom','amd']
+  },
+  tarify: {
+    tags: ['Makro','USA','Politika'],
+    title: 'Trumpova celní válka 2026: Kdo za to zaplatí a které akcie jsou v ohrožení?',
+    subtitle: 'Trump uvalil 15% globální cla. Goldman Sachs: 77 % nákladů platí američtí spotřebitelé. Yale Budget Lab: cla zdraží zboží o 1,2 % a sníží HDP USA o 0,4 %. Kdo vydělá a kdo prodělá?',
+    date: '24. 2. 2026', order: 8, time: '7 min čtení', ticker: 'S&P 500',
+    highlight: '„Goldman Sachs jasně říká: 77 % nákladů Trumpových cel platí američtí spotřebitelé a firmy – ne Čína. Cla jsou skrytá daň na americké domácnosti, která zdraží zboží o 1,2 % a srazí HDP o 0,4 %."',
+    body: `
+      <h2>Co se stalo – tvrdá fakta</h2><div class="divider"></div>
+      <p><strong>20. února 2026:</strong> Nejvyšší soud USA zrušil Trumpova reciproční cla – překročil pravomoci dle zákona IEEPA. Trhy se nadechly, S&P 500 +0,69 %.</p>
+      <p><strong>22. února 2026 (sobota):</strong> Trump na Truth Social vyhlásil nová <strong>15% globální cla</strong> okamžitě – tentokrát přes paragraf 122. Jiný zákonný základ, stejný efekt. Trhy nestihly ani oslavit.</p>
+      <p><strong>23. února 2026 (pondělí):</strong> Dow -821 bodů (-1,66 %), S&P 500 -1,04 %, Nasdaq -1,13 %. Zlato skočilo na $5 168. Paniku nezastavilo nic.</p>
+      <h2>Kdo skutečně platí cla – ne Trump, ale vy</h2><div class="divider"></div>
+      <p>Trump opakovaně tvrdí, že cla platí Čína. Goldman Sachs to vyvrátil: <strong>77 % nákladů cel padá na americké firmy a spotřebitele</strong> – ne zahraniční exportéry. Zahraniční výrobci sice zlevňují, ale ne dost na to aby pokryli celé clo.</p>
+      <p>Konkrétní dopad: Yale Budget Lab odhaduje, že 15% cla zvýší spotřebitelské ceny v USA o <strong>1,2 %</strong> a sníží reálný HDP o <strong>0,4 procentního bodu</strong> v 2026. Nezaměstnanost vzroste o 0,6 p.b. To jsou reálné ztráty pro americké domácnosti.</p>
+      <h2>Které akcie jsou nejvíce ohroženy</h2><div class="divider"></div>
+      <p><strong>Retaileři a spotřební zboží:</strong> Walmart, Target, Nike – firmy silně závislé na dovozu z Asie. Zdražení vstupů buď sníží marže nebo zdraží produkty pro zákazníky.</p>
+      <p><strong>Výrobci elektroniky:</strong> Apple má výrobu převážně v Číně. 15% clo na každý iPhone přidá desítky dolarů k výrobním nákladům. Cupertino zatím mlčí o zdražení pro zákazníky.</p>
+      <p><strong>Automobilový průmysl:</strong> Ford, GM, Stellantis – komplexní globální dodavatelské řetězce jsou náchylné na celní turbulence.</p>
+      <h2>Kdo na clech vydělává</h2><div class="divider"></div>
+      <p>Domácí výrobci ocelí a hliníku (Nucor, Steel Dynamics) jsou přímými beneficienty – zahraniční konkurence je dražší. Firmy s čistě americkou výrobou a distribucí jsou odolnější. Zlato a bezpečné přístavy – investoři prchají z akcií do komodit.</p>
+      <h2>Reakce světa</h2><div class="divider"></div>
+      <p>EU varovala: odvetná cla jsou připravena. Čína paradoxně posílila (Hang Seng +2 %) – trhy spekulují že Čína získala vyjednávací prostor. Kanada pohrozila kontraopatřeními za desítky miliard dolarů. Celní válka se teprve rozjíždí.</p>
+      <h2>Je to vyjednávací taktika, nebo trvalá politika?</h2><div class="divider"></div>
+      <p>Trh se pomalu učí považovat Trumpova cla za vyjednávací nástroj. Hugh Dive z Atlas Funds Management: „Za pár dní bude nový strašák." Ale 15 % clo platné od soboty není tweet – je to zákon. A firmy musí plánovat investice v podmínkách extrémní nejistoty. Capex odklady jsou reálné riziko pro ekonomiku v 2026.</p>
+    `,
+    pros: ['Domácí výrobci (ocel, hliník) profitují','Zlato jako hedge na celní nejistotu funguje','SCOTUS precedent omezuje Trumpovy pravomoci do budoucna'],
+    cons: ['77 % nákladů platí američtí spotřebitelé a firmy','Inflace +1,2 % komplikuje snižování sazeb Fedem','HDP USA -0,4 % v 2026 dle Yale Budget Lab','EU a Čína připravují odvetu – eskalace možná'],
+    verdict: 'Celní válka je reálná a nákladná – primárně pro americké domácnosti, ne pro zahraniční exportéry. Pro investory: vyhýbat se firmám závislým na asijském importu, zvážit domácí výrobce a diverzifikaci přes zlato.',
+    rating: '⚠ Zvýšená opatrnost – Volatilita a inflační riziko',
+    more: ['asml','nvidia','microsoft']
+  },
+  anthropic: {
+    tags: ['AI','Technologie','Analýza'],
+    title: 'Anthropic: Claude Code shodil IBM o 13 % za jeden den',
+    subtitle: 'Anthropic zveřejnil blog post o Claude Code a COBOL modernizaci. IBM ztratil za den $31 miliard tržní hodnoty. Jak mocný je Claude opravdu?',
+    date: '24. 2. 2026', order: 10, time: '7 min čtení', ticker: 'Soukromá firma',
+    highlight: '„Anthropic napsal blog post. IBM ztratil $31 miliard. Accenture, Cognizant, CrowdStrike – všichni padli. Jedno AI oznámení dokáže zničit desetiletí budovaný byznys."',
+    body: `
+      <h2>Co se stalo 23. února 2026</h2><div class="divider"></div>
+      <p>Anthropic zveřejnil blog post popisující schopnosti <strong>Claude Code</strong> – AI nástroje pro modernizaci starého kódu. Konkrétně: Claude Code dokáže automatizovat modernizaci COBOLu, programovacího jazyka z roku 1959 který stále pohání kritické systémy bank, vlád a leteckých společností.</p>
+      <p>Výsledek? IBM, firma která desetiletí vydělávala na COBOL konzultacích, ztratila <strong>13,2 % hodnoty</strong> za jediný den – největší jednodenní propad od roku 2000. Vymazáno bylo přes <strong>$31 miliard tržní hodnoty</strong>. Akcie Accenture a Cognizant také klesly.</p>
+      <h2>Co je COBOL a proč je to důležité</h2><div class="divider"></div>
+      <p>COBOL (Common Business-Oriented Language) je programovací jazyk z roku 1959. Stále pohání <strong>95 % všech ATM transakcí</strong> v USA, systémy leteckých společností, vládní registry a bankovní infrastrukturu. Odhaduje se, že v produkci běží stovky miliard řádků COBOL kódu.</p>
+      <p>Problém: programátoři znalí COBOLu vymírají. Migrovat COBOL systémy bylo drahé, pomalé a nebezpečné. Proto IBM vydělával miliardy na konzultacích – posílal armády expertů na projekty trvající roky.</p>
+      <h2>Claude Code – co umí</h2><div class="divider"></div>
+      <p>Anthropic tvrdí, že Claude Code dokáže automatizovat nejnákladnější fáze modernizace: mapování závislostí napříč tisíci řádky kódu, dokumentaci workflow a identifikaci rizik. To, co dříve trvalo konzultantům <strong>měsíce, zvládne AI za hodiny</strong>.</p>
+      <p>"S AI mohou týmy modernizovat COBOL codebase za čtvrtletí místo let," napsal Anthropic. Tento přístup přímo útočí na high-margin konzultační byznys IBM.</p>
+      <h2>Anthropic jako firma</h2><div class="divider"></div>
+      <p>Anthropic je soukromá firma – nelze do ní přímo investovat. Byla založena v 2021 bývalými zaměstnanci OpenAI v čele s Dariem Amodeim. Hlavní investoři jsou <strong>Amazon</strong> (investoval přes $8 miliard) a <strong>Google</strong>. Firma je oceňována na desítky miliard dolarů.</p>
+      <p>Anthropic v únoru 2026 způsobil dvě vlny paniky na trzích: nejdřív Claude pluginy vymazaly $285 miliard z SaaS firem, pak Claude Code Security shodil kybernetické firmy (CrowdStrike, Zscaler), a nyní COBOL oznámení.</p>
+      <h2>Je panika oprávněná?</h2><div class="divider"></div>
+      <p>Analytici jsou rozděleni. LPL Financial varuje, že trh přehnaně reaguje na narativ – skutečné výnosy IBM z COBOL konzultací ještě nespadly. IBM navíc sám tvrdí, že hodnota mainframů není v COBOLu ale v platformě samotné. Skutečný dopad Claude Code se ukáže až za 1–2 roky v reálných projektech.</p>
+    `,
+    pros: ['Claude Code je reálný produkt s reálným dopadem','Amazon a Google jako investoři – silné zázemí','Systematicky útočí na lucrative enterprise trhy','Claude 3.5/4 patří ke světové špičce'],
+    cons: ['Soukromá firma – nelze investovat přímo','Trh možná přehnaně reaguje na blog posty','IBM má stále silnou pozici v regulovaných odvětvích','Skutečný dopad COBOL nástroje zatím neověřen v praxi'],
+    verdict: 'Anthropic je bez pochyb jedna z nejvlivnějších AI firem světa. Přímá investice není možná, ale sledujte dopad na IBM, Accenture a SaaS sektor – tam se příběh odehrává.',
+    rating: '👀 Sledovat – Nepřímý dopad na celý tech sektor',
+    more: ['openai','nvidia','microsoft']
+  },
+  openai: {
+    tags: ['AI','Technologie','Startupy'],
+    title: 'OpenAI 2026: $100 miliard fundraising a cesta k IPO',
+    subtitle: 'OpenAI uzavírá rekordní fundraising přes $100 miliard. Valuace přes $850 miliard. ChatGPT má 910 milionů týdenních uživatelů. Přichází IPO?',
+    date: '24. 2. 2026', order: 7, time: '6 min čtení', ticker: 'Soukromá firma',
+    highlight: '„OpenAI má 910 milionů týdenních uživatelů, $13 miliard ročních tržeb a plánuje utratit $600 miliard do 2030. Zároveň stále tratí peníze. Je to největší sázka v historii technologií."',
+    body: `
+      <h2>Rekordní fundraising</h2><div class="divider"></div>
+      <p>OpenAI dokončuje fundraisingové kolo které překoná <strong>$100 miliard</strong> – největší v historii startupů. Pre-money valuace zůstává na $730 miliardách, celková valuace po kole může přesáhnout <strong>$850 miliard</strong>. Mezi investory jsou NVIDIA (jednání o investici $30 miliard), Amazon a SoftBank.</p>
+      <h2>Finanční realita</h2><div class="divider"></div>
+      <h3>Tržby rostou, ztráty také</h3>
+      <p>OpenAI vykázal za 2025 tržby <strong>$13,1 miliardy</strong> – překonal vlastní odhad o $100 milionů. ChatGPT má přes <strong>910 milionů týdenních aktivních uživatelů</strong>. Výhled: $30 miliard v 2026, $62 miliard v 2027, až $280 miliard v 2030.</p>
+      <p>Problém: náklady rostou rychleji. Cash burn v 2026 bude <strong>$25 miliard</strong>, v 2027 přes $57 miliard. Kladné cash flow se očekává až v roce <strong>2030</strong>. Inference costs (cena za spuštění AI) se v 2025 zdvojnásobily.</p>
+      <h3>Compute ambice</h3>
+      <p>OpenAI původně oznámil závazky za $1,4 bilionů na infrastrukturu. Nyní upřesnil: plánuje utratit přibližně <strong>$600 miliard na compute do 2030</strong>. Tréninkové náklady samotné dosáhnou ~$440 miliard do 2030.</p>
+      <h2>Produkty a konkurence</h2><div class="divider"></div>
+      <p>ChatGPT v únoru 2026 vyřadil starší modely GPT-4o a přechází na GPT-5 sérii. Codex (coding asistent) překonal <strong>1,5 milionu týdenních uživatelů</strong> a přímo soutěží s Anthropic Claude Code. OpenAI uzavřel dohodu s Disney pro generování videí ze Sory s Disney postavami.</p>
+      <p>Plánuje se <strong>IPO v druhé polovině 2026</strong> – to by bylo největší technologické IPO v historii. Přechod z nonprofit na for-profit strukturu byl dokončen.</p>
+      <h2>Anthropic vs OpenAI</h2><div class="divider"></div>
+      <p>OpenAI a Anthropic jsou hlavní rivalové v AI závodě. Zatímco OpenAI dominuje počtem uživatelů a consumer trhem, Anthropic se zaměřuje na enterprise a bezpečnost AI. Claude Code a Codex od OpenAI bojují o stejné vývojáře. Google investoval do obou firem – Amazon do Anthropic, NVIDIA do OpenAI.</p>
+    `,
+    pros: ['910 milionů týdenních uživatelů – dominantní pozice','$13,1 mld tržeb v 2025 – reálný byznys','IPO v 2026 – potenciální investiční příležitost','Nejlepší brand v AI – ChatGPT je synonymum pro AI'],
+    cons: ['Tratí $25 miliard ročně – kladné cash flow až v 2030','Enormní závislost na externím kapitálu','Konkurence Anthropic, Google, Meta rychle roste','Přechod na for-profit přinesl interní turbulence'],
+    verdict: 'OpenAI je nejdůležitější AI firma světa – ale stále soukromá. Sledujte IPO v druhé polovině 2026. Do té doby hrajte AI boom přes NVIDIA, Microsoft nebo Amazon.',
+    rating: '⏳ Čekat na IPO – Pak přehodnotit',
+    more: ['anthropic','nvidia','microsoft']
+  }
+};
+
+function renderArticleGrid() {
+  const sorted = Object.entries(articles).sort((a, b) => (b[1].order ?? 0) - (a[1].order ?? 0));
+
+  const grid = document.getElementById('articles-grid');
+  grid.innerHTML = sorted.map(([id, a], i) => `
+    <div class="ac${i===0?' ac-featured':''}" onclick="showArticle('${id}')" data-id="${id}">
+      <div class="ac-tag">${i===0?'Nejnovější':a.tags[0]}</div>
+      <h3 class="ac-title">${a.title}</h3>
+      ${i===0?'<div class="divider"></div>':''}
+      <p class="ac-exc">${a.subtitle}</p>
+      <div class="ac-meta"><span>${a.date}</span><span>${a.time} →</span></div>
+    </div>`).join('');
+}
+
+function showHome(skipHistory) { if (!skipHistory) history.pushState({page:'home'}, '', '#');
+  document.getElementById('page-home').classList.add('active');
+  document.getElementById('page-article').classList.remove('active');
+  document.getElementById('nav-back').style.display = 'none';
+  renderArticleGrid();
+  window.scrollTo(0,0);
+}
+
+function showArticle(id, skipHistory) { if (!skipHistory) history.pushState({page:'article', id:id}, '', '#'+id);
+  const a = articles[id];
+  if (!a) return;
+  
+  const tagsHtml = a.tags.map((t,i) => `<span class="art-tag${i===2?' green':''}">${t}</span>`).join('');
+  const prosHtml = a.pros.map(p => `<li>${p}</li>`).join('');
+  const consHtml = a.cons.map(c => `<li>${c}</li>`).join('');
+  const moreHtml = a.more.map(m => `
+    <div class="mc" onclick="showArticle('${m}')">
+      <div class="mc-tag">${articles[m].tags[0]}</div>
+      <div class="mc-title">${articles[m].title}</div>
+      <div class="mc-meta">${articles[m].date} · ${articles[m].time}</div>
+    </div>`).join('');
+
+  document.getElementById('article-content').innerHTML = `
+    <div class="art-hero">
+      <div class="art-tags">${tagsHtml}</div>
+      <h1 class="art-h1">${a.title}</h1>
+      <p class="art-sub">${a.subtitle}</p>
+      <div class="art-meta">
+        <span><strong>${a.date}</strong></span>
+        <span>${a.time}</span>
+        <span>Ticker: <strong style="color:var(--accent)">${a.ticker}</strong></span>
+      </div>
+    </div>
+    <div class="art-body">
+      <div class="hl">${a.highlight}</div>
+      ${a.body}
+      <div class="ad"><div><div class="al">Reklama</div><div class="at">Investujte přes partnera – bez poplatků za obchod</div></div><button class="ac-btn">Zjistit více →</button></div>
+      <h2>Pro a proti</h2><div class="divider"></div>
+      <div class="procon">
+        <div class="pro"><div class="pro-t">✦ Argumenty pro</div><ul>${prosHtml}</ul></div>
+        <div class="con"><div class="con-t">✦ Argumenty proti</div><ul>${consHtml}</ul></div>
+      </div>
+      <div class="verdict">
+        <div class="vl">Náš verdikt</div>
+        <div class="vt">${a.verdict}</div>
+        <div class="vr">Hodnocení: <span class="stars">${a.rating}</span></div>
+      </div>
+      <div class="disc"><strong>Upozornění:</strong> Tento článek slouží pouze k informačním účelům a nepředstavuje investiční poradenství. BriefStock CZ nezodpovídá za finanční rozhodnutí učiněná na základě tohoto obsahu.</div>
+    </div>
+    <div class="more-articles">
+      <div class="more-t">Další analýzy</div>
+      <div class="more-grid">${moreHtml}</div>
+    </div>`;
+
+  document.getElementById('page-home').classList.remove('active');
+  document.getElementById('page-article').classList.add('active');
+  document.getElementById('nav-back').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+// TOP 10 by market cap: NVDA, AAPL, GOOGL, MSFT, AMZN, META, AVGO, TSLA, BRK.B, WMT
+const TICKERS = ['NVDA','AAPL','GOOGL','MSFT','AMZN','META','AVGO','TSLA','BRK.B','WMT'];
+const FINNHUB_KEY = 'd0ekm4pr01qgs60dj6cgd0ekm4pr01qgs60dj6d0';
+
+async function fetchTicker() {
+  try {
+    const results = await Promise.all(TICKERS.map(sym =>
+      fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`)
+        .then(r => r.json())
+        .then(d => ({ sym, price: d.c, pct: ((d.c - d.pc) / d.pc * 100) }))
+    ));
+
+    const valid = results.filter(r => r.price > 0);
+    if (!valid.length) return;
+
+    const doubled = [...valid, ...valid];
+    let html = '';
+    doubled.forEach(r => {
+      const dir = r.pct >= 0 ? 'up' : 'down';
+      const sign = r.pct >= 0 ? '+' : '';
+      html += `<span class="ti"><span class="tn">${r.sym}</span>&nbsp;${r.price.toFixed(2)}&nbsp;<span class="${dir}">${sign}${r.pct.toFixed(2)}%</span></span>`;
+    });
+    document.getElementById('ticker-inner').innerHTML = html;
+  } catch(e) {
+    console.log('Ticker error', e);
+  }
+}
+
+fetchTicker();
+setInterval(fetchTicker, 60000);
+
+
+renderArticleGrid();
+
+window.addEventListener('DOMContentLoaded', function() {
+  renderArticleGrid();
+  const hash = window.location.hash.replace('#','');
+  if (hash && articles[hash]) showArticle(hash, true);
+});
+
+// Middle click / Ctrl+click opens new tab
+document.addEventListener('click', function(e) {
+  const card = e.target.closest('[data-id]');
+  if (card && (e.ctrlKey || e.metaKey || e.button === 1)) {
+    e.preventDefault();
+    window.open(window.location.pathname + '#' + card.dataset.id, '_blank');
+  }
+});
+document.addEventListener('auxclick', function(e) {
+  if (e.button === 1) {
+    const card = e.target.closest('[data-id]');
+    if (card) { e.preventDefault(); window.open(window.location.pathname + '#' + card.dataset.id, '_blank'); }
+  }
+});
+
+window.addEventListener('popstate', function(e) { if (e.state) { if (e.state.page === 'home') showHome(true); else if (e.state.page === 'article') showArticle(e.state.id, true); } else { showHome(true); } });
+</script>
+</body>
+</html>
